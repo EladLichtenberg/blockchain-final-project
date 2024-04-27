@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Page</title>
+    <style>
+        /* Styles for centering the page and coloring it light blue */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+            /* Light blue color */
+        }
+
+        /* Styles for the container */
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+
+        /* Styles for the output box */
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+            /* Set minimum height for output box */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Container for the content -->
+    <div class="container">
+        <!-- Header -->
+        <h1>Election Page Between "0-Ben" and "1-Hani"</h1>
+
+        <!-- Voter selection -->
+        <div>
+            <label for="voterSelect">Select Voter:</label>
+            <select id="voterSelect">
+                <option value="0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0">Voter 1</option>
+                <option value="0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b">Voter 2</option>
+                <option value="0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d">Voter 3</option>
+            </select>
+            <button onclick="giveRightToVote()">Give Right to Vote</button>
+        </div>
+
+        <!-- competitor selection -->
+        <div>
+            <label for="competitorSelect">Select Competitor:</label>
+            <select id="competitorSelect">
+                <option value="0">Competitor 0</option>
+                <option value="1">Competitor 1</option>
+            </select>
+            <button onclick="vote()">Vote</button>
+        </div>
+
+        <!-- Output box -->
+        <div class="output" id="output"></div>
+
+        <!-- Start election button -->
+        <button onclick="startElection()">Start Election</button>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.6/dist/web3.min.js"></script>
+    <script>
+        // Define contract address and admin address
+        const contractAddress = "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab";
+        const adminAddress = "0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1";
+
+        // Define contract ABI
+        const tokenABI = [{ "inputs": [{ "internalType": "bytes32[]", "name": "competitorNames", "type": "bytes32[]" }], "stateMutability": "nonpayable", "type": "constructor" }, { "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "name": "competitors", "outputs": [{ "internalType": "bytes32", "name": "name", "type": "bytes32" }, { "internalType": "uint256", "name": "voteCount", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "director", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "voter", "type": "address" }], "name": "giveRightToVote", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "competitor", "type": "uint256" }], "name": "vote", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "voters", "outputs": [{ "internalType": "uint256", "name": "counter", "type": "uint256" }, { "internalType": "bool", "name": "voted", "type": "bool" }, { "internalType": "uint256", "name": "indexOfVote", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "winnerName", "outputs": [{ "internalType": "bytes32", "name": "name", "type": "bytes32" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "winningCompetitor", "outputs": [{ "internalType": "uint256", "name": "index", "type": "uint256" }], "stateMutability": "view", "type": "function" }]
+
+
+        // Initialize Web3
+        const web3 = new Web3('http://localhost:8545');
+        const ballotContract = new web3.eth.Contract(tokenABI, contractAddress);
+
+        // Function to give right to vote
+        async function giveRightToVote() {
+            const voter = document.getElementById("voterSelect").value;
+            try {
+                await ballotContract.methods.giveRightToVote(voter).send({ from: adminAddress, gas: 100000, gasPrice: "10000000000" });
+                document.getElementById("output").innerText = `Voter ${voter} has been given the right to vote`;
+            } catch (error) {
+                document.getElementById("output").innerText = error.message;
+            }
+        }
+
+        // Function to cast vote
+        async function vote() {
+            const competitorIndex = document.getElementById("competitorSelect").value;
+            const voter = document.getElementById("voterSelect").value;
+            try {
+                await ballotContract.methods.vote(competitorIndex).send({ from: voter, gas: 100000, gasPrice: "10000000000" });
+                document.getElementById("output").innerText = `Voter ${voter} has voted for competitor ${competitorIndex}`;
+            } catch (error) {
+                document.getElementById("output").innerText = error.message;
+            }
+        }
+
+        // Function to start election
+        async function startElection() {
+            try {
+                const winnerIndex = await ballotContract.methods.winningCompetitor().call();
+                let winner = "No winner yet"
+                // const winnerName = await ballotContract.methods.winnerName().call();
+                // const winnerNameHex = web3.utils.hexToAscii(winnerName);
+                //const truncatedWinnerName = winnerNameHex.substring(0, 30); // Truncate to the first 30 characters
+                if (winnerIndex == 1)
+                    winner = "Hani"
+                else
+                    winner = "Ben"
+                document.getElementById("output").innerText = `The winner is, contestant number ${winnerIndex}: ${winner}`;
+            } catch (error) {
+                document.getElementById("output").innerText = error.message;
+            }
+        }
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "// node create project\r npm init",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "elad",
+  "license": "ISC",
+  "dependencies": {
+    "ethereumjs-tx": "^2.1.2",
+    "ethers": "^5.7.2",
+    "fs-extra": "^11.2.0",
+    "web3": "^1.10.4"
+  },
+  "devDependencies": {
+    "ganache": "^7.9.2"
+  }
+}
